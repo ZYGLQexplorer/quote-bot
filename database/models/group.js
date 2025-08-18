@@ -41,6 +41,9 @@ const groupSchema = Schema({
       default: 800
     }
   },
+  stickerPackOwner: {
+    type: Number
+  },
   stickerSet: {
     name: String,
     create: {
