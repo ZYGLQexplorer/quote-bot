@@ -57,14 +57,21 @@ module.exports = async ctx => {
         const packName = `g${Math.random().toString(36).substring(5)}_${Math.abs(ctx.group.info.group_id)}_by_${ctx.options.username}`
         const packTitle = `${ctx.group.info.title.substring(0, 30)} pack by @${ctx.options.username}`
 
-        const chatAdministrators = await ctx.getChatAdministrators()
-        let chatAdministrator = ctx.from
+        let ownerId;
 
-        chatAdministrators.forEach((administrator) => {
-          if (administrator.status === 'creator') chatAdministrator = administrator.user
-        })
+        if (ctx.group.info.stickerPackOwner) {
+          ownerId = ctx.group.info.stickerPackOwner;
+        } else {
+          const chatAdministrators = await ctx.getChatAdministrators()
+          let chatAdministrator = ctx.from
 
-        stickerAdd = await ctx.telegram.createNewStickerSet(chatAdministrator.id, packName, packTitle, {
+          chatAdministrators.forEach((administrator) => {
+            if (administrator.status === 'creator') chatAdministrator = administrator.user
+          })
+          ownerId = chatAdministrator.id
+        }
+
+        stickerAdd = await ctx.telegram.createNewStickerSet(ownerId, packName, packTitle, {
           png_sticker: { source: stickerPNG },
           emojis
         }).catch((error) => {

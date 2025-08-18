@@ -35,6 +35,7 @@ help: |2
     <code>/q 5 rm</code>
 
   仅限管理员使用:
+  <code>/qsetowner</code> — 设置贴纸包所有者 <i>[回复消息]</i>
   <code>/qs 🥰💜</code> — 将表情符号🥰💜的贴纸/照片/带照片的照片保存到群组的贴纸包中<i>(表情符号可以是任何和任意数量)</i> <i>[回复消息]</i>
   <code>/qd</code> — 从群组的贴纸包中移除贴纸 <i>[回复消息]</i>
   <code>/qdrand</code> — 从群组的随机贴纸中移除贴纸 <i>[回复消息]</i>
@@ -84,6 +85,11 @@ sticker:
   delete_random:
     suc: 贴纸已从群组随机贴纸中移除。
     error: <b>无法删除该贴纸。</b>\n<pre>${error}</pre>
+  set_owner: 
+    suc: |
+      贴纸包所有者已设置为: ${ownerName}
+    empty_forward: |
+      请回复一条消息来设置贴纸包所有者。
   empty_forward: |
     请回复一条消息.
 rate:
