@@ -11,6 +11,7 @@ module.exports = {
   handleSave: require('./sticker-save'),
   handleDelete: require('./sticker-delete'),
   handleDeleteRandom: require('./sticker-random-delete'),
+  handleStickerOwner: require('./sticker-owner'),
   handleRate: require('./rate'),
   handleEmoji: require('./emoji'),
   handleSettingsRate: require('./rate-settings'),
