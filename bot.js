@@ -28,7 +28,8 @@ const {
   handlePing,
   handleChatMember,
   handleInlineQuery,
-  handleDeleteRandom
+  handleDeleteRandom,
+  handleStickerOwner
 } = require('./handlers')
 const { getUser, getGroup } = require('./helpers')
 
