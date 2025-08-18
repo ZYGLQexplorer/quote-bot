@@ -35,7 +35,7 @@ help: |2
     <code>/q 5 rm</code>
 
   Only for administrators:
-  <code>/qsetowner</code> — 设置贴纸包所有者 <i>[回复消息]</i>
+  <code>/setowner</code> — set the sticker pack owner <i>[in response to the message]</i> 
   <code>/qs 🥰💜</code> — saves a sticker/photo/document with a photo to a sticker pack of a group with emoji 🥰💜 <i>(emoji can be any and any number)</i> <i>[reply to message]</i>
   <code>/qd</code> — remove the sticker from the sticker pack of group  <i>[in response to the message]</i>
   <code>/qdrand</code> — remove the sticker from the group random stickers  <i>[in response to the message]</i>
@@ -77,6 +77,7 @@ sticker:
     error:
       animated: I can't add an animated sticker.
       need_creator: <b>I failed saving this sticker.</b>\n${creator} must write me any message in PM.
+      need_user_start: <b>Action failed.</b>\nThe designated sticker pack owner ${ownerName} needs to start a chat with the bot first. # 新增
       telegram: <b>I failed saving that sticker.</b>\n<pre>${error}</pre>
   delete:
     suc: Sticker has been successfully removed from the <a href="${link}">group sticker pack</a>.
