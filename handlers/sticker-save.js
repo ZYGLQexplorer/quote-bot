@@ -57,39 +57,53 @@ module.exports = async ctx => {
         const packName = `g${Math.random().toString(36).substring(5)}_${Math.abs(ctx.group.info.group_id)}_by_${ctx.options.username}`
         const packTitle = `${ctx.group.info.title.substring(0, 30)} pack by @${ctx.options.username}`
 
-        let ownerId;
+        let owner;
 
+        // 检查是否已指定所有者
         if (ctx.group.info.stickerPackOwner) {
-          ownerId = ctx.group.info.stickerPackOwner;
-        } else {
-          const chatAdministrators = await ctx.getChatAdministrators()
-          let chatAdministrator = ctx.from
-
-          chatAdministrators.forEach((administrator) => {
-            if (administrator.status === 'creator') chatAdministrator = administrator.user
-          })
-          ownerId = chatAdministrator.id
-        }
-
-        stickerAdd = await ctx.telegram.createNewStickerSet(ownerId, packName, packTitle, {
-          png_sticker: { source: stickerPNG },
-          emojis
-        }).catch((error) => {
-          if (error.description === 'Bad Request: PEER_ID_INVALID' || error.description === 'Forbidden: bot was blocked by the user') {
-            result = ctx.i18n.t('sticker.save.error.need_creator', {
-              creator: userName(chatAdministrator, true)
-            })
-          } else {
-            result = ctx.i18n.t('sticker.save.error.telegram', {
-              error
-            })
+          try {
+            // 尝试获取指定所有者的信息
+            owner = await ctx.telegram.getChat(ctx.group.info.stickerPackOwner);
+          } catch (e) {
+             result = `<b>无法获取指定所有者信息。</b>\n<pre>${e.message}</pre>`;
           }
-        })
+        } else {
+          // 否则，回退到查找群主
+          const chatAdministrators = await ctx.getChatAdministrators()
+          let chatAdministrator = { user: ctx.from } // 默认是当前用户
 
-        if (stickerAdd) {
-          ctx.group.info.stickerSet.name = packName
-          ctx.group.info.stickerSet.create = true
+          const creator = chatAdministrators.find(admin => admin.status === 'creator');
+          if (creator) {
+            chatAdministrator = creator;
+          }
+          owner = chatAdministrator.user;
         }
+
+        if (owner) {
+            stickerAdd = await ctx.telegram.createNewStickerSet(owner.id, packName, packTitle, {
+              png_sticker: { source: stickerPNG },
+              emojis
+            }).catch((error) => {
+              const ownerName = userName(owner, true);
+              if (error.description === 'Bad Request: PEER_ID_INVALID' || error.description === 'Forbidden: bot was blocked by the user') {
+                if (ctx.group.info.stickerPackOwner) {
+                  // 如果是指定的所有者
+                  result = ctx.i18n.t('sticker.save.error.need_user_start', { ownerName });
+                } else {
+                  // 如果是群主
+                  result = ctx.i18n.t('sticker.save.error.need_creator', { creator: ownerName });
+                }
+              } else {
+                result = ctx.i18n.t('sticker.save.error.telegram', { error });
+              }
+            });
+
+            if (stickerAdd) {
+              ctx.group.info.stickerSet.name = packName;
+              ctx.group.info.stickerSet.create = true;
+            }
+        }
+
       } else {
         stickerAdd = await ctx.telegram.addStickerToSet(ctx.from.id, ctx.group.info.stickerSet.name.toLowerCase(), {
           png_sticker: { source: stickerPNG },
