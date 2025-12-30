@@ -36,6 +36,10 @@ const groupSchema = Schema({
       type: Boolean,
       default: false
     },
+    publicSave: {
+      type: Boolean,
+      default: false
+    },
     randomQuoteGab: {
       type: Number,
       default: 800
