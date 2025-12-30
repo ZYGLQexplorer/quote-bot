@@ -29,7 +29,8 @@ const {
   handleChatMember,
   handleInlineQuery,
   handleDeleteRandom,
-  handleStickerOwner
+  handleStickerOwner,
+  handleConfig
 } = require('./handlers')
 const { getUser, getGroup } = require('./helpers')
 
