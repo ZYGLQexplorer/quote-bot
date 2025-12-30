@@ -6,7 +6,17 @@ const {
 
 module.exports = async ctx => {
   let result = ''
-
+  const chatMember = await ctx.getChatMember(ctx.from.id)
+  const isAdmin = ['creator', 'administrator'].includes(chatMember.status)
+  
+  // 如果不是管理员，且群组未开启普通用户保存，则拒绝
+  if (!isAdmin && !ctx.group.info.settings.publicSave) {
+    return ctx.replyWithHTML('🚫 此功能仅限管理员使用。\n管理员可在 /config 中开启普通用户保存权限。', {
+      reply_to_message_id: ctx.message.message_id,
+      allow_sending_without_reply: true
+    })
+  }
+  
   if (ctx.message.reply_to_message) {
     const replyMessage = ctx.message.reply_to_message
 
