@@ -29,7 +29,8 @@ const {
   handleChatMember,
   handleInlineQuery,
   handleDeleteRandom,
-  handleStickerOwner
+  handleStickerOwner,
+  handleConfig
 } = require('./handlers')
 const { getUser, getGroup } = require('./helpers')
 
@@ -306,8 +307,10 @@ bot.use((ctx, next) => {
 
 bot.command('q', handleQuote)
 bot.hears(/\/q_(.*)/, handleGetQuote)
-bot.hears(/^\/qs(?:\s([^\s]+)|)/, onlyGroup, onlyAdmin, handleSave)
+bot.hears(/^\/qs(?:\s([^\s]+)|)/, onlyGroup, handleSave)
 bot.command('qd', onlyGroup, onlyAdmin, handleDelete)
+bot.command('config', onlyGroup, handleConfig)
+bot.action('config:toggle_public_save', handleConfig)
 bot.command('qdrand', onlyGroup, onlyAdmin, handleDeleteRandom)
 bot.command('setowner', onlyGroup, onlyAdmin, handleStickerOwner)
 bot.hears(/^\/qcolor(?:(?:\s(?:(#?))([^\s]+))?)/, onlyAdmin, handleColorQuote)

@@ -19,5 +19,6 @@ module.exports = {
   handleLanguage: require('./language'),
   handlePing: require('./ping'),
   handleChatMember: require('./chat-member'),
-  handleInlineQuery: require('./inline-query')
+  handleInlineQuery: require('./inline-query'),
+  handleConfig: require('./config')
 }
