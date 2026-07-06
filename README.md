@@ -33,7 +33,7 @@ docker compose up -d
 ```yaml
 services:
   bot:
-    image: ghcr.io/krau/quote-bot:main
+    image: ghcr.io/zyglqexplorer/quote-bot:main
     restart: always
     logging:
       driver: "json-file"
@@ -69,4 +69,22 @@ services:
 
 ```bash
 docker compose up -d
+```
+
+## 新增功能
+
+```
+/setowner 可以在失去群主权限时更改目标用户
+/config 可以设置是否允许非管理员保存贴纸
+```
+
+
+推荐在 BotFather 处设置的 Commands：
+
+```
+q - 生成语录
+qs - 保存贴纸
+qd - 从群组的贴纸包中移除贴纸
+config - 设置是否允许普通用户保存贴纸
+setowner - 设置贴纸包所有者
 ```

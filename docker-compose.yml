@@ -1,6 +1,6 @@
 services:
     bot:
-        image: ghcr.io/krau/quote-bot:main
+        image: ghcr.io/zyglqexplorer/quote-bot:main
         restart: always
         logging:
             driver: "json-file"

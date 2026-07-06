@@ -43,6 +43,9 @@ const generateRandomColor = () => {
 
 const minIdsInChat = {}
 
+// 清理临时贴纸包时,每次删除贴纸之间的间隔(毫秒),用于规避 Telegram 限流(429)
+const STICKER_DELETE_INTERVAL = 500
+
 module.exports = async (ctx, next) => {
   quoteCountIO.mark()
 
@@ -140,7 +143,6 @@ module.exports = async (ctx, next) => {
     if (!firstMessage?.message_id) {
       return ctx.replyWithHTML(ctx.i18n.t('quote.empty_forward'), {
         reply_to_message_id: ctx.message.message_id,
-        allow_sending_without_reply: true,
         allow_sending_without_reply: true
       })
     }
@@ -286,8 +288,13 @@ module.exports = async (ctx, next) => {
       text = quoteMessage.caption
       message.entities = quoteMessage.caption_entities
     } else {
-      text = quoteMessage.text
-      message.entities = quoteMessage.entities
+      if (ctx.update.message.quote) {
+        text = ctx.update.message.quote["text"];
+        message.entities = ctx.update.message.quote.entities;
+      } else {
+        text = quoteMessage.text;
+        message.entities = quoteMessage.entities;
+      }
     }
 
     if (!text) {
@@ -350,6 +357,10 @@ module.exports = async (ctx, next) => {
         message.replyMessage.chatId = replyMessageInfo.from.id
       } else {
         message.replyMessage.chatId = hashCode(message.replyMessage.name)
+      }
+      if (ctx.update.message.reply_to_message.quote) {
+        replyMessageInfo.text = ctx.update.message.reply_to_message.quote['text']
+        replyMessageInfo.entities = ctx.update.message.reply_to_message.quote.entities
       }
       if (replyMessageInfo.text) message.replyMessage.text = replyMessageInfo.text
       if (replyMessageInfo.caption) message.replyMessage.text = replyMessageInfo.caption
@@ -542,23 +553,28 @@ module.exports = async (ctx, next) => {
 
           const sticketSet = await ctx.getStickerSet(packName)
 
-          // if (ctx.session.userInfo.tempStickerSet.create) {
-          //   sticketSet.stickers.forEach(async (sticker, index) => {
-          //     // wait 3 seconds before delete sticker
-          //     await new Promise((resolve) => setTimeout(resolve, 3000))
-
-          //     if (index > config.globalStickerSet.save_sticker_count - 1) {
-          //       telegram.deleteStickerFromSet(sticker.file_id).catch(() => { })
-          //     }
-          //   })
-          // }
-
+          // 先发送最新加入的贴纸(此时它还在包里,file_id 有效)
           sendResult = await ctx.replyWithSticker(sticketSet.stickers[sticketSet.stickers.length - 1].file_id, {
             reply_to_message_id: ctx.message.message_id,
             allow_sending_without_reply: true,
             reply_markup: replyMarkup,
             business_connection_id: ctx.update?.business_message?.business_connection_id
           })
+
+          // 发送成功后清理临时贴纸包:删除除第 0 张 placeholder 之外的所有贴纸,
+          // 使包收敛到最小状态,同时排空历史积压。
+          // - 已发送的贴纸消息不受影响(Telegram 通过 file_id 长期保留);
+          // - 不删第 0 张,保证包不会被删空(Telegram 要求贴纸包至少保留 1 张);
+          // - 后台执行且删除之间加间隔,避免阻塞响应并规避限流(429)。
+          if (sendResult && sticketSet.stickers.length > 1) {
+            const toDelete = sticketSet.stickers.slice(1)
+            ;(async () => {
+              for (const sticker of toDelete) {
+                await telegram.deleteStickerFromSet(sticker.file_id).catch(() => {})
+                await sleep(STICKER_DELETE_INTERVAL)
+              }
+            })()
+          }
         }
       }
 
