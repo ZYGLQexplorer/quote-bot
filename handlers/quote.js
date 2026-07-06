@@ -43,6 +43,9 @@ const generateRandomColor = () => {
 
 const minIdsInChat = {}
 
+// 临时贴纸包最多保留的贴纸数量,超出后在发送成功后删除最旧的贴纸
+const MAX_TEMP_STICKERS = 5
+
 module.exports = async (ctx, next) => {
   quoteCountIO.mark()
 
@@ -550,23 +553,22 @@ module.exports = async (ctx, next) => {
 
           const sticketSet = await ctx.getStickerSet(packName)
 
-          // if (ctx.session.userInfo.tempStickerSet.create) {
-          //   sticketSet.stickers.forEach(async (sticker, index) => {
-          //     // wait 3 seconds before delete sticker
-          //     await new Promise((resolve) => setTimeout(resolve, 3000))
-
-          //     if (index > config.globalStickerSet.save_sticker_count - 1) {
-          //       telegram.deleteStickerFromSet(sticker.file_id).catch(() => { })
-          //     }
-          //   })
-          // }
-
+          // 先发送最新加入的贴纸(此时它还在包里,file_id 有效)
           sendResult = await ctx.replyWithSticker(sticketSet.stickers[sticketSet.stickers.length - 1].file_id, {
             reply_to_message_id: ctx.message.message_id,
             allow_sending_without_reply: true,
             reply_markup: replyMarkup,
             business_connection_id: ctx.update?.business_message?.business_connection_id
           })
+
+          // 发送成功后清理:只保留最近 MAX_TEMP_STICKERS 张,删除多余的旧贴纸。
+          // 已发送的贴纸消息不会因从包中删除而失效,且始终保留最新一张,不会把包删空。
+          if (sendResult && sticketSet.stickers.length > MAX_TEMP_STICKERS) {
+            const toDelete = sticketSet.stickers.slice(0, sticketSet.stickers.length - MAX_TEMP_STICKERS)
+            for (const sticker of toDelete) {
+              await telegram.deleteStickerFromSet(sticker.file_id).catch(() => {})
+            }
+          }
         }
       }
 
