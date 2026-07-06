@@ -2,12 +2,13 @@
 language_name: "🇨🇳 简体中文"
 description:
   short: |
-    语录生成 Bot (Edited by Krau).
+    语录生成 Bot (Edited by Krau and zyglq).
     使用 /q 回复一条消息, 或者直接将其发给 Bot.
+    挂了就多试两次 多试两次还不行就等五分钟再试两次 还是不行再叫我修
   long: |
     记录群友怪话!
 help: |2
-  语录生成 Bot (Edited by Krau).
+  语录生成 Bot (Edited by Krau and zyglq).
   使用 /q 回复一条消息, 或者直接将其发给 Bot.
   在群组或私聊中都可使用.
 
@@ -35,6 +36,7 @@ help: |2
     <code>/q 5 rm</code>
 
   仅限管理员使用:
+  <code>/config</code> — 设置是否允许普通用户保存贴纸
   <code>/setowner</code> — 设置贴纸包所有者 <i>[回复消息]</i>
   <code>/qs 🥰💜</code> — 将表情符号🥰💜的贴纸/照片/带照片的照片保存到群组的贴纸包中<i>(表情符号可以是任何和任意数量)</i> <i>[回复消息]</i>
   <code>/qd</code> — 从群组的贴纸包中移除贴纸 <i>[回复消息]</i>
@@ -86,7 +88,7 @@ sticker:
   delete_random:
     suc: 贴纸已从群组随机贴纸中移除。
     error: <b>无法删除该贴纸。</b>\n<pre>${error}</pre>
-  set_owner: 
+  set_owner:
     suc: |
       贴纸包所有者已设置为: ${ownerName}
     empty_forward: |
