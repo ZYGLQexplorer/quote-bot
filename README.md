@@ -45,7 +45,7 @@ services:
     depends_on:
       - mongodb
   api:
-    image: ghcr.io/lyosu/quote-api:latest
+    image: ghcr.io/zyglqexplorer/quote-api:latest
     restart: always
     logging:
       driver: "json-file"
