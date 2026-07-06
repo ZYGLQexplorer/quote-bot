@@ -43,8 +43,8 @@ const generateRandomColor = () => {
 
 const minIdsInChat = {}
 
-// 临时贴纸包最多保留的贴纸数量,超出后在发送成功后删除最旧的贴纸
-const MAX_TEMP_STICKERS = 5
+// 清理临时贴纸包时,每次删除贴纸之间的间隔(毫秒),用于规避 Telegram 限流(429)
+const STICKER_DELETE_INTERVAL = 500
 
 module.exports = async (ctx, next) => {
   quoteCountIO.mark()
@@ -561,13 +561,19 @@ module.exports = async (ctx, next) => {
             business_connection_id: ctx.update?.business_message?.business_connection_id
           })
 
-          // 发送成功后清理:只保留最近 MAX_TEMP_STICKERS 张,删除多余的旧贴纸。
-          // 已发送的贴纸消息不会因从包中删除而失效,且始终保留最新一张,不会把包删空。
-          if (sendResult && sticketSet.stickers.length > MAX_TEMP_STICKERS) {
-            const toDelete = sticketSet.stickers.slice(0, sticketSet.stickers.length - MAX_TEMP_STICKERS)
-            for (const sticker of toDelete) {
-              await telegram.deleteStickerFromSet(sticker.file_id).catch(() => {})
-            }
+          // 发送成功后清理临时贴纸包:删除除第 0 张 placeholder 之外的所有贴纸,
+          // 使包收敛到最小状态,同时排空历史积压。
+          // - 已发送的贴纸消息不受影响(Telegram 通过 file_id 长期保留);
+          // - 不删第 0 张,保证包不会被删空(Telegram 要求贴纸包至少保留 1 张);
+          // - 后台执行且删除之间加间隔,避免阻塞响应并规避限流(429)。
+          if (sendResult && sticketSet.stickers.length > 1) {
+            const toDelete = sticketSet.stickers.slice(1)
+            ;(async () => {
+              for (const sticker of toDelete) {
+                await telegram.deleteStickerFromSet(sticker.file_id).catch(() => {})
+                await sleep(STICKER_DELETE_INTERVAL)
+              }
+            })()
           }
         }
       }
